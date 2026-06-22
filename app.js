@@ -190,19 +190,14 @@ window.addEventListener('mousemove', (event) => {
 const ttsAudio = new Audio();
 const auraWrapper = document.getElementById('aura-wrapper');
 
-// Audio Context for Aura Sync
-let audioCtx, analyser, dataArray, source;
-
-function initAudioContext() {
-    if (audioCtx) return;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 64; // Smaller for smoother reactivity
-    dataArray = new Uint8Array(analyser.frequencyBinCount);
-    
-    source = audioCtx.createMediaElementSource(ttsAudio);
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
+// Fallback visualizer: pulse based on time when talking
+function updateAura() {
+    if (talking) {
+        const time = Date.now() * 0.005;
+        const pulse = 1 + Math.sin(time * 2) * 0.2;
+        auraWrapper.style.setProperty('--aura-scale', pulse);
+        glowMat.emissiveIntensity = 2 + Math.sin(time * 3) * 1.5;
+    }
 }
 
 const messagesDiv = document.getElementById('messages');
@@ -226,13 +221,24 @@ function resetChat() {
 }
 
 function speakText(text) {
-    initAudioContext();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-
     const apiUrl = `${CONFIG.TTS_API_URL}?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(CONFIG.VOICE_NAME)}`;
+    
+    // Reset audio to avoid overlapping
+    ttsAudio.pause();
+    ttsAudio.currentTime = 0;
     ttsAudio.src = apiUrl;
     ttsAudio.playbackRate = CONFIG.SPEECH_SPEED;
-    ttsAudio.play().catch(e => console.warn("Audio playback delayed until user interaction"));
+    
+    ttsAudio.play().catch(e => {
+        console.warn("Audio playback delayed until user interaction or CORS block");
+        // Fallback for visual-only interaction if sound fails
+        talking = true;
+        auraWrapper.classList.add('active');
+        setTimeout(() => {
+            talking = false;
+            auraWrapper.classList.remove('active');
+        }, text.length * 100); // Rough estimate
+    });
 
     talking = true;
     auraWrapper.classList.add('active');
@@ -413,20 +419,8 @@ function animate() {
     }
 
     if (talking) {
-        // Audio analysis for Aura sync
-        if (analyser) {
-            analyser.getByteFrequencyData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-            const average = sum / dataArray.length;
-            const loudness = average / 128; // Normalized 0-1 (approx)
-            
-            // Sync CSS Aura
-            auraWrapper.style.setProperty('--aura-scale', 1 + loudness * 0.5);
-            
-            // Intense glow while speaking
-            glowMat.emissiveIntensity = 2 + loudness * 3;
-        }
+        // Pulse Aura and Intensity based on time (Most reliable fallback)
+        updateAura();
 
         // Emotive "speech" head tilt
         helmet.rotation.z = Math.sin(time * 8) * 0.02;
