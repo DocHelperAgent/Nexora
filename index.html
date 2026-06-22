@@ -21,8 +21,16 @@
         </div>
     </div>
     <div id="threejs-container"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
-    <script src="config.js?v=1.0.2"></script>
-    <script src="app.js?v=1.0.2"></script>
+    <script src="https://unpkg.com/three@0.148.0/build/three.min.js" crossorigin="anonymous"></script>
+    <script>
+        if (typeof THREE === 'undefined') {
+            console.log('Unpkg failed, trying jsDelivr...');
+            var script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js";
+            document.head.appendChild(script);
+        }
+    </script>
+    <script src="config.js?v=1.0.3"></script>
+    <script src="app.js?v=1.0.3"></script>
 </body>
 </html>
