@@ -1,3 +1,11 @@
+if (typeof window !== 'undefined' && window.__nexora_initialized) {
+    console.log('Nexora already initialized — skipping duplicate app.js load.');
+} else {
+    if (typeof window !== 'undefined') window.__nexora_initialized = true;
+
+    if (typeof THREE === 'undefined') {
+        console.error('THREE is not defined. Ensure three.js is loaded before app.js');
+    } else {
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -354,7 +362,7 @@ chatInput.addEventListener('keydown', (e) => {
 
 // Animation Loop
 function animate() {
-    requestAnimationFrame(animate);
+    window.__nexora_animFrame = requestAnimationFrame(animate);
     const time = Date.now() * 0.002;
 
     // Agent bobbing
@@ -406,3 +414,14 @@ window.addEventListener('resize', () => {
 
 console.log("3D Scene Initialized Successfully");
 animate();
+
+// Cleanup handler to clear animation frame and allow re-initialization if needed
+window.addEventListener('unload', () => {
+    try {
+        if (window.__nexora_animFrame) cancelAnimationFrame(window.__nexora_animFrame);
+    } catch (e) { }
+    try { window.__nexora_initialized = false; } catch (e) { }
+});
+
+    }
+}
