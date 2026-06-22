@@ -120,3 +120,56 @@ html, body {
 .user-msg {
     color: #333;
 }
+
+/* Audio Aura Styles */
+#aura-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0; /* Behind the robot and chat UI */
+    pointer-events: none;
+    display: none; /* Hidden by default */
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+#aura-wrapper.active {
+    display: block;
+    opacity: 1;
+}
+
+.container-loader {
+    --size: 400px;
+    width: var(--size);
+    height: var(--size);
+    position: relative;
+    transform: translateX(0); /* Adjusted for wrapper centering */
+}
+
+.container-loader .ball {
+    position: absolute;
+    width: calc(var(--size) + var(--i));
+    height: calc(var(--size) + var(--i));
+    background-color: var(--color);
+    border-radius: 50%;
+    animation: move 5s linear infinite;
+    transform-origin: center;
+    mix-blend-mode: hard-light;
+    animation-duration: var(--d);
+    filter: blur(60px);
+    left: 50%;
+    top: 50%;
+    margin-left: calc((var(--size) + var(--i)) / -2);
+    margin-top: calc((var(--size) + var(--i)) / -2);
+}
+
+.container-loader .ball:nth-child(even) {
+    animation-direction: reverse;
+}
+
+@keyframes move {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(var(--aura-scale, 1.1)); }
+    100% { transform: rotate(360deg) scale(1); }
+}

@@ -188,6 +188,23 @@ window.addEventListener('mousemove', (event) => {
 
 // Audio & AI Logic
 const ttsAudio = new Audio();
+const auraWrapper = document.getElementById('aura-wrapper');
+
+// Audio Context for Aura Sync
+let audioCtx, analyser, dataArray, source;
+
+function initAudioContext() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 64; // Smaller for smoother reactivity
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    
+    source = audioCtx.createMediaElementSource(ttsAudio);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+}
+
 const messagesDiv = document.getElementById('messages');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
@@ -209,17 +226,23 @@ function resetChat() {
 }
 
 function speakText(text) {
+    initAudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
     const apiUrl = `${CONFIG.TTS_API_URL}?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(CONFIG.VOICE_NAME)}`;
     ttsAudio.src = apiUrl;
     ttsAudio.playbackRate = CONFIG.SPEECH_SPEED;
     ttsAudio.play().catch(e => console.warn("Audio playback delayed until user interaction"));
 
     talking = true;
+    auraWrapper.classList.add('active');
+
     ttsAudio.onended = () => {
         talking = false;
+        auraWrapper.classList.remove('active');
         helmet.rotation.x = 0;
-        leftEye.scale.y = 1;
-        rightEye.scale.y = 1;
+        leftEye.scale.y = 0.5;
+        rightEye.scale.y = 0.5;
     };
 }
 
@@ -390,10 +413,22 @@ function animate() {
     }
 
     if (talking) {
-        // Intensive pulse while speaking
-        glowMat.emissiveIntensity = 2 + Math.sin(Date.now() * 0.02) * 1;
+        // Audio analysis for Aura sync
+        if (analyser) {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            const average = sum / dataArray.length;
+            const loudness = average / 128; // Normalized 0-1 (approx)
+            
+            // Sync CSS Aura
+            auraWrapper.style.setProperty('--aura-scale', 1 + loudness * 0.5);
+            
+            // Intense glow while speaking
+            glowMat.emissiveIntensity = 2 + loudness * 3;
+        }
 
-        // Emotive "speech" head tilt (adds to mouse tracking)
+        // Emotive "speech" head tilt
         helmet.rotation.z = Math.sin(time * 8) * 0.02;
 
         const s = 0.4 + Math.abs(Math.sin(time * 12)) * 0.6;
