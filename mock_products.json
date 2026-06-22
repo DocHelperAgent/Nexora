@@ -1,0 +1,29 @@
+{
+    "category": "Eco-friendly Packaging",
+    "products": [
+        {
+            "id": "EP-001",
+            "name": "Biodegradable Bamboo Mailers",
+            "supplier": "EcoPack Solutions",
+            "moq": "500 units",
+            "price": "$0.45 - $0.60",
+            "rating": 4.8
+        },
+        {
+            "id": "EP-002",
+            "name": "Compostable Cornstarch Bags",
+            "supplier": "GreenEarth Mfg",
+            "moq": "1000 units",
+            "price": "$0.12 - $0.18",
+            "rating": 4.5
+        },
+        {
+            "id": "EP-003",
+            "name": "Recycled Kraft Paper Boxes",
+            "supplier": "Sustainable Cartons Co.",
+            "moq": "200 units",
+            "price": "$1.20 - $1.50",
+            "rating": 4.9
+        }
+    ]
+}
