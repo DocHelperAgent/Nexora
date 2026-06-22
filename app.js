@@ -1,3 +1,4 @@
+
 if (typeof window !== 'undefined' && window.__nexora_initialized) {
     console.log('Nexora already initialized — skipping duplicate app.js load.');
 } else {
